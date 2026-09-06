@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import * as api from "../data/mockApi";
+import * as authApi from "../api/authApi";
+import * as profileApi from "../api/profileApi";
 
 const AuthContext = createContext(null);
 
@@ -9,7 +10,7 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     let mounted = true;
-    api.getSession().then((res) => {
+    authApi.getSession().then((res) => {
       if (!mounted) return;
       if (res.ok) setUser(res.user);
       setIsInitializing(false);
@@ -20,20 +21,20 @@ export function AuthProvider({ children }) {
   }, []);
 
   const login = useCallback(async (credentials) => {
-    const res = await api.login(credentials);
+    const res = await authApi.login(credentials);
     if (res.ok) setUser(res.user);
     return res;
   }, []);
 
   const logout = useCallback(async () => {
-    await api.logout();
+    await authApi.logout();
     setUser(null);
   }, []);
 
   const updateProfile = useCallback(
     async (updates) => {
       if (!user) return { ok: false, error: "Not authenticated." };
-      const res = await api.updateProfile(user.clientId, updates);
+      const res = await profileApi.updateProfile(user.clientId, updates);
       if (res.ok) setUser(res.user);
       return res;
     },

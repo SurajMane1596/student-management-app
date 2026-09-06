@@ -23,7 +23,7 @@ export default function Login() {
     resolver: zodResolver(loginSchema),
     defaultValues: { clientId: "", mobileNumber: "", password: "" },
   });
-
+  // console.log(watch("clientId"), watch("mobileNumber"), watch("password"));
   if (!isInitializing && isAuthenticated) {
     const redirectTo = location.state?.from?.pathname || "/home";
     return <Navigate to={redirectTo} replace />;
@@ -46,11 +46,17 @@ export default function Login() {
           <div className="w-14 h-14 rounded-2xl bg-primary-600 flex items-center justify-center text-white mb-3">
             <GraduationCap size={28} />
           </div>
-          <h1 className="text-2xl font-bold text-slate-900">Student Management</h1>
+          <h1 className="text-2xl font-bold text-slate-900">
+            Student Management
+          </h1>
           <p className="text-sm text-slate-500 mt-1">Sign in to your account</p>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="card p-6 space-y-4" noValidate>
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="card p-6 space-y-4"
+          noValidate
+        >
           {serverError && (
             <div className="rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm px-3 py-2">
               {serverError}
@@ -85,13 +91,18 @@ export default function Login() {
             {...register("password")}
           />
 
-          <button type="submit" disabled={isSubmitting} className="btn-primary w-full mt-2">
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="btn-primary w-full mt-2"
+          >
             {isSubmitting && <Spinner className="w-4 h-4" />}
             Sign In
           </button>
 
           <p className="text-xs text-center text-slate-400 pt-1">
-            Demo credentials — Client Id: <span className="font-mono">DEMO0001</span>, Mobile:{" "}
+            Demo credentials — Client Id:{" "}
+            <span className="font-mono">DEMO0001</span>, Mobile:{" "}
             <span className="font-mono">9619306969</span>, Password:{" "}
             <span className="font-mono">Demo@123</span>
           </p>

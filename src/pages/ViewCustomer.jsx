@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Plus, Pencil, Users as UsersIcon, School } from "lucide-react";
 import { PageHeading, Spinner } from "../components/ui/Atoms";
 import { useAuth } from "../context/AuthContext";
-import * as api from "../data/mockApi";
+import * as api from "../api/customerApi";
 
 export default function ViewCustomer() {
   const { user } = useAuth();

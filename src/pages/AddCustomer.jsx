@@ -17,7 +17,7 @@ import {
   SCHOOL_DAYS_OPTIONS,
 } from "../data/masterData";
 import { useAuth } from "../context/AuthContext";
-import * as api from "../data/mockApi";
+import * as api from "../api/customerApi";
 
 export default function AddCustomer() {
   const { user } = useAuth();

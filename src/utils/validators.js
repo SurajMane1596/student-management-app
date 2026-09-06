@@ -7,6 +7,7 @@ export const PATTERNS = {
   password: /^[A-Za-z0-9@#$%* ]*$/, // A-Z, a-z, 0-9, @ # $ % *, space
   alphaSpace: /^[A-Za-z ]*$/, // A-Z, a-z, space
   freeTextNarrative: /^[A-Za-z ,.]*$/, // A-Z, a-z, space, comma, full stop
+  addressText: /^[A-Za-z0-9 ,.-]*$/, // A-Z, a-z, 0-9, space, comma, period, hyphen
   alphaOnly: /^[A-Za-z]*$/, // A-Z (Division)
   numericOnly: /^[0-9]*$/, // 0-9 (Standard)
 };

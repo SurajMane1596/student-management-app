@@ -17,7 +17,7 @@ and desktop.
 | Styling               | Tailwind CSS                              | Fast, consistent, no CSS-file sprawl; easy to theme |
 | Icons                 | lucide-react                              | Lightweight, tree-shakeable |
 | State                 | React Context (`AuthContext`)             | Simple, sufficient for auth/session; swappable for Redux/Zustand later without touching pages |
-| Data layer            | `src/data/mockApi.js` (localStorage)      | Isolates every screen from persistence details — swap this one file for real HTTP calls when the backend/API contract is ready |
+| Data layer            | `src/api/*Api.js` + `src/data/mockApi.js`  | Every page calls `src/api/*Api.js`. With `VITE_API_BASE_URL` unset, those files delegate to the localStorage mock; set it to point at `backend/` and the same pages talk to a real Neon-backed API — zero component changes either way |
 
 ## Getting Started
 
@@ -29,9 +29,19 @@ npm run preview    # preview the production build locally
 npm run lint        # oxlint
 ```
 
+By default the app runs entirely against the built-in mock (no server
+needed). To use the real backend instead, see `backend/README.md` to get
+it running, then:
+
+```bash
+cp .env.example .env.local
+# set VITE_API_BASE_URL=http://localhost:4000/api in .env.local
+npm run dev
+```
+
 ### Demo login
 
-The mock backend seeds one user so you can log in immediately:
+Both the mock and the backend's seed script provision the same demo user:
 
 | Field | Value |
 |---|---|
@@ -43,19 +53,25 @@ The mock backend seeds one user so you can log in immediately:
 
 ```
 src/
+  api/
+    httpClient.js     Fetch wrapper: base URL, bearer token, normalized
+                      { ok, ... } responses matching mockApi's contract
+    tokenStore.js     JWT storage (localStorage) for the real backend
+    authApi.js         login/logout/getSession -- mock or real, by flag
+    profileApi.js       updateProfile -- mock or real
+    customerApi.js       list/get/create/update/deleteCustomer -- mock or real
   components/
     layout/         AppShell (header + drawer), NavDrawer, ProtectedRoute
     ui/              Reusable form controls (Input, Select, TextArea,
                       PasswordInput, MultiSelectDays) and small atoms
                       (Badge, Spinner, SectionCard, PageHeading)
   context/
-    AuthContext.jsx  Session state, login/logout/updateProfile
+    AuthContext.jsx  Session state, login/logout/updateProfile (via src/api/)
   data/
     masterData.js    Single source of truth for every dropdown list
                       (Gender, Blood Group, City, District, State, Days)
-    mockApi.js        Promise-based mock backend (localStorage-backed).
-                      Replace the body of each function with real fetch()
-                      calls to go live -- no other file needs to change.
+    mockApi.js        Promise-based mock backend (localStorage-backed),
+                      used automatically when VITE_API_BASE_URL is unset.
   schemas/
     loginSchema.js    Zod schema -- Section 5.1
     profileSchema.js  Zod schema -- Section 5.3
@@ -99,17 +115,27 @@ regex patterns in `src/utils/validators.js`. This keeps the mapping from
 spec to code traceable, and means a future change to the document (e.g. a
 new accepted character) is a one-line change in a single file.
 
+## Backend
+
+A production-ready backend (Express + Prisma + Neon PostgreSQL) lives in
+`backend/`. It's a separate deployable service — see `backend/README.md`
+for Neon setup, migrations, seeding, the API reference, and deployment
+instructions. The frontend works standalone without it (mock mode) and
+switches to it entirely via the `VITE_API_BASE_URL` env var above.
+
 ## Ready for Future Development
 
-- **API contracts**: swap `src/data/mockApi.js` for real HTTP calls;
-  every page already awaits a Promise and handles `{ ok, error }`
-  shaped responses, so no component changes are required.
+- **Real backend**: already built in `backend/` — see above. No frontend
+  component changes were needed to wire it up, only the `src/api/*Api.js`
+  layer, exactly as designed.
 - **Master data from API**: `src/data/masterData.js` exports plain
   arrays -- replace with a fetch-and-cache hook without touching any
-  form.
-- **Auth**: `AuthContext` currently persists a session via
-  `localStorage`; swapping to JWT/cookie-based auth only touches
-  `mockApi.js` and `AuthContext.jsx`.
+  form. The backend already models City/District/State as database
+  tables for this reason.
+- **Auth**: the real backend issues JWTs; `src/api/tokenStore.js` and
+  `authApi.js` are the only files that know about token storage, so
+  switching to e.g. httpOnly-cookie sessions later touches just those two
+  files.
 - **Design system**: all form controls live in `src/components/ui/` --
   restyle once, it applies everywhere.
 - **TypeScript migration**: the code is organized so files can be
