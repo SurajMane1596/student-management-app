@@ -1,0 +1,156 @@
+// Prisma schema for the Student Management backend.
+// Datasource is Neon PostgreSQL — see backend/README.md for how to obtain
+// the pooled (DATABASE_URL) and direct (DIRECT_URL) connection strings.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL") // pooled connection (PgBouncer) — used at runtime
+  directUrl = env("DIRECT_URL")   // direct connection — used only by `prisma migrate`
+}
+
+// ---------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------
+
+enum SubscriptionStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum BloodGroup {
+  A_POS
+  A_NEG
+  B_POS
+  B_NEG
+  AB_POS
+  AB_NEG
+  O_POS
+  O_NEG
+}
+
+enum WeekDay {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}
+
+// ---------------------------------------------------------------------
+// Core tables
+// ---------------------------------------------------------------------
+
+model User {
+  id                 String             @id @default(cuid())
+  clientId           String             @unique @map("client_id")
+  mobileNumber       String             @unique @map("mobile_number")
+  passwordHash       String             @map("password_hash")
+  userName           String             @map("user_name")
+  email              String             @unique
+  subscriptionStatus SubscriptionStatus @default(ACTIVE) @map("subscription_status")
+  clientName         String             @map("client_name")
+  createdAt          DateTime           @default(now()) @map("created_at")
+  updatedAt          DateTime           @updatedAt @map("updated_at")
+
+  students Student[]
+
+  @@index([clientId])
+  @@index([mobileNumber])
+  @@map("users")
+}
+
+model Student {
+  id     String @id @default(cuid())
+  userId String @map("user_id")
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  firstName  String  @map("first_name")
+  middleName String  @map("middle_name")
+  lastName   String  @map("last_name")
+
+  parentName          String @map("parent_name")
+  parentContactNumber String @map("parent_contact_number")
+
+  gender     Gender
+  age        Int?
+  dob        DateTime
+  bloodGroup BloodGroup? @map("blood_group")
+
+  medicalHistory          String @map("medical_history")
+  emergencyContactNumber  String @map("emergency_contact_number")
+
+  addressLine1 String @map("address_line1")
+  addressLine2 String @map("address_line2")
+  city         String
+  district     String
+  state        String
+  pincode      String
+
+  schoolName                 String  @map("school_name")
+  standard                   String
+  division                   String?
+  groupHouse                 String? @map("group_house")
+  classTeacherName           String? @map("class_teacher_name")
+  classTeacherContactNumber  String? @map("class_teacher_contact_number")
+  schoolInTime               String  @map("school_in_time")
+  schoolOutTime              String  @map("school_out_time")
+
+  schoolDays StudentSchoolDay[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@map("students")
+}
+
+// Join table for the multi-select "School Days" field.
+model StudentSchoolDay {
+  studentId String  @map("student_id")
+  student   Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  day       WeekDay
+
+  @@id([studentId, day])
+  @@map("student_school_days")
+}
+
+// ---------------------------------------------------------------------
+// Lookup tables (master data) — modelled as tables rather than enums so
+// City / District / State can grow past today's short lists without a
+// schema migration. Gender, Blood Group and School Days stay enums since
+// they're closed, unlikely-to-change sets; that's the standard trade-off
+// (enum = compile-time safety + speed, lookup table = runtime editability).
+// ---------------------------------------------------------------------
+
+model City {
+  id   String @id @default(cuid())
+  name String @unique
+
+  @@map("cities")
+}
+
+model District {
+  id   String @id @default(cuid())
+  name String @unique
+
+  @@map("districts")
+}
+
+model State {
+  id   String @id @default(cuid())
+  name String @unique
+
+  @@map("states")
+}

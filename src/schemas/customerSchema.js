@@ -34,6 +34,13 @@ const requiredNarrative = (label, max) =>
     .max(max, `${label} must be at most ${max} characters`)
     .regex(PATTERNS.freeTextNarrative, MESSAGES.freeTextNarrative);
 
+const requiredAddressText = (label, max) =>
+  z
+    .string()
+    .min(1, `${label} is required`)
+    .max(max, `${label} must be at most ${max} characters`)
+    .regex(PATTERNS.addressText, MESSAGES.addressText);
+
 // Section 5.5 — Add Customer Screen
 export const customerSchema = z.object({
   // Student details
@@ -62,8 +69,8 @@ export const customerSchema = z.object({
   emergencyContactNumber: requiredDigits("Emergency Contact Number", 10),
 
   // Address
-  addressLine1: requiredNarrative("Address Line 1", 250),
-  addressLine2: requiredNarrative("Address Line 2", 250),
+  addressLine1: requiredAddressText("Address Line 1", 250),
+  addressLine2: requiredAddressText("Address Line 2", 250),
   city: z.enum(CITY_OPTIONS, {
     errorMap: () => ({ message: "Please select City" }),
   }),
