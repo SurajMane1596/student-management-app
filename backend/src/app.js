@@ -24,7 +24,7 @@ export function createApp() {
     cors({
       origin: env.corsOrigin,
       credentials: true,
-    })
+    }),
   );
   app.use(express.json({ limit: "1mb" }));
   app.use(
@@ -41,7 +41,7 @@ export function createApp() {
       serializers: {
         req: (req) => ({ method: req.method, url: req.url, id: req.id }),
       },
-    })
+    }),
   );
 
   app.use("/api/health", healthRoutes);

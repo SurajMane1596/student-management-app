@@ -16,18 +16,12 @@ import { isProduction } from "../config/env.js";
  * The global-caching pattern below also prevents creating a new client on
  * every hot-reload in development.
  */
+
+// backend/src/lib/prisma.js
+const { PrismaClient } = require("@prisma/client");
+
 const globalForPrisma = globalThis;
+const prisma = globalForPrisma.prisma ?? new PrismaClient();
+if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
 
-export const prisma =
-  globalForPrisma.__prisma ??
-  new PrismaClient({
-    log: isProduction ? ["error", "warn"] : ["warn", "error"],
-  });
-
-if (!isProduction) {
-  globalForPrisma.__prisma = prisma;
-}
-
-export async function disconnectPrisma() {
-  await prisma.$disconnect();
-}
+module.exports = prisma;
